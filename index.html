@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Pong</title>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+        // Create the ball
+        const ball = new THREE.Mesh(geometry, material);
+        ball.position.set(0, 0, 3);
+        scene.add(ball);
+
+        // Create paddles
+        const paddle1 = new THREE.Mesh(geometry, material);
+        paddle1.position.set(-3, 0, 0);
+        scene.add(paddle1);
+
+        const paddle2 = new THREE.Mesh(geometry, material);
+        paddle2.position.set(3, 0, 0);
+        scene.add(paddle2);
+
+        // Game variables
+        let ballVelocity = new THREE.Vector3(0.05, 0.02, -0.03);
+        let player1Score = 0;
+        let player2Score = 0;
+
+        document.addEventListener('keydown', (event) => {
+            switch (event.key) {
+                case 'w':
+                    paddle1.position.y += 0.5;
+                    break;
+                case 's':
+                    paddle1.position.y -= 0.5;
+                    break;
+                case 'Up':
+                    paddle2.position.y += 0.5;
+                    break;
+                case 'Down':
+                    paddle2.position.y -= 0.5;
+                    break;
+            }
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Update ball position
+            ball.position.addVectors(ballVelocity, ballVelocity);
+
+            // Check for wall collisions
+            if (ball.position.x > 4 || ball.position.x < -4) {
+                ballVelocity.x *= -1;
+            }
+            if (ball.position.y > 3 || ball.position.y < -3) {
+                ballVelocity.y *= -1;
+            }
+
+            // Check for paddle collisions
+            if (ball.position.x > 2.8 && ball.position.x < 3 &&
+                ball.position.y + 0.5 > paddle2.position.y &&
+                ball.position.y - 0.5 < paddle2.position.y) {
+                ballVelocity.x *= -1;
+            }
+            if (ball.position.x < -2.8 && ball.position.x > -3 &&
+                ball.position.y + 0.5 > paddle1.position.y &&
+                ball.position.y - 0.5 < paddle1.position.y) {
+                ballVelocity.x *= -1;
+            }
+
+            // Check for goal
+            if (ball.position.z < -5) {
+                player1Score++;
+                ball.position.set(0, 0, 3);
+                ballVelocity = new THREE.Vector3(0.05, 0.02, -0.03);
+            } else if (ball.position.z > 5) {
+                player2Score++;
+                ball.position.set(0, 0, 3);
+                ballVelocity = new THREE.Vector3(-0.05, 0.02, 0.03);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
